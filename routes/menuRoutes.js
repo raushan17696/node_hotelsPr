@@ -2,6 +2,16 @@ const express = require('express');
 const router = express.Router();
 const menu = require('./../models/menu'); // Import the menu model
 
+router.get('/menu', async (req, res) => {
+    try {
+        const menus = await menu.find(); // Fetch all menu items from the database
+        res.status(200).json(menus);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+})
+
 // POST route to create a menu item
 router.post('/', async (req, res) => {
     try {
