@@ -2,7 +2,8 @@ const express = require('express');
 const router = express.Router();
 const menu = require('./../models/menu'); // Import the menu model
 
-router.get('/menu', async (req, res) => {
+// GET route to fetch all menu items
+router.get('/', async (req, res) => {
     try {
         const menus = await menu.find(); // Fetch all menu items from the database
         res.status(200).json(menus);
@@ -48,6 +49,7 @@ router.put('/:id', async (req, res) => {
         res.status(500).json({ error: 'Internal Server Error' });
     }
 })
+
 // DELETE route to delete a menu item
 router.delete('/:id', async (req, res) => {
     try {
@@ -67,6 +69,5 @@ router.delete('/:id', async (req, res) => {
         res.status(500).json({ error: 'Internal Server Error' });
     }
 });
-
 
 module.exports = router;

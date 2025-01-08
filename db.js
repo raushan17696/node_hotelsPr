@@ -1,28 +1,44 @@
-
-
 const mongoose = require('mongoose');
 require('dotenv').config();
 
 const mongoURL = process.env.MONGODB_URL;
 
-mongoose.connect(mongoURL)
-    .then(() => console.log('Connected to MongoDB server'))
-    .catch(err => console.error('MongoDB connection error:', err));
+// Validate the environment variable
+if (!mongoURL) {
+    console.error('Error: MONGODB_URL environment variable is not set.');
+    process.exit(1);
+}
 
-const db = mongoose.connection;
+// Connect to MongoDB with additional SSL configuration
+mongoose.connect(mongoURL, {
+    ssl: true,  // Ensuring SSL is explicitly used
+    retryWrites: true,
+    w: 'majority',
+})
+    .then(() => console.log('Connected to MongoDB successfully'))
+    .catch(err => {
+        console.error('MongoDB connection error:', err.message);
+        process.exit(1); // Exit process if connection fails
+    });
 
-// Define event listeners for database connections
-db.on('connected', () => {
-    console.log('Connected to MongoDB server');
+// MongoDB connection event listeners
+mongoose.connection.on('connected', () => {
+    console.log('Mongoose connected to MongoDB');
 });
 
-db.on('error', (err) => {
-    console.error('MongoDB connection error:', err);
+mongoose.connection.on('error', (err) => {
+    console.error('Mongoose connection error:', err.message);
 });
 
-db.on('disconnected', () => {
-    console.log('MongoDB server disconnected');
+mongoose.connection.on('disconnected', () => {
+    console.log('Mongoose disconnected from MongoDB');
 });
 
-// Export the db connection to server.js
-module.exports = db;
+// Graceful shutdown
+process.on('SIGINT', async () => {
+    await mongoose.connection.close();
+    console.log('Mongoose connection closed due to app termination');
+    process.exit(0);
+});
+
+module.exports = mongoose;
